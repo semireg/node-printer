@@ -29,6 +29,7 @@
   "scripts": {
     "preinstall": "npm install node-pre-gyp",
     "install": "node-pre-gyp install --fallback-to-build",
+    "build": "node-gyp build",
     "test": "nodeunit test"
   },
   "binary": {
@@ -42,5 +43,8 @@
       "type": "BSD"
     }
   ],
-  "main": "./lib/printer"
+  "main": "./lib/printer",
+  "dependencies": {
+    "node-pre-gyp": "^0.11.0"
+  }
 }

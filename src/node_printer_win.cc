@@ -4,6 +4,8 @@
 #include <windows.h>
 #include <Winspool.h>
 #include <Wingdi.h>
+#include <Winsplp.h>
+
 #pragma  comment(lib, "Winspool.lib")
 #else
 #error "Unsupported compiler for windows. Feel free to add it."
@@ -14,6 +16,7 @@
 #include <utility>
 #include <sstream>
 #include <node_version.h>
+#include <node_buffer.h>
 
 namespace{
     typedef std::map<std::string, DWORD> StatusMapType;
@@ -741,4 +744,82 @@ MY_NODE_MODULE_CALLBACK(PrintFile)
 {
     MY_NODE_MODULE_HANDLESCOPE;
     RETURN_EXCEPTION_STR("Not yet implemented on Windows");
+}
+
+MY_NODE_MODULE_CALLBACK(WritePath)
+{
+    MY_NODE_MODULE_HANDLESCOPE;
+    REQUIRE_ARGUMENTS(iArgs, 2);
+
+    REQUIRE_ARGUMENT_STRING(iArgs, 0, path);
+
+    std::string data;
+    v8::Handle<v8::Value> arg1(iArgs[1]);
+    if (!getStringOrBufferFromV8Value(arg1, data))
+    {
+        RETURN_EXCEPTION_STR("Argument 1 must be a string or Buffer");
+    }
+
+    HANDLE handle = CreateFile(*path, GENERIC_READ|GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+    if(handle == INVALID_HANDLE_VALUE) {
+        RETURN_EXCEPTION_STR("Handle could not be opened");
+    }
+
+    COMMTIMEOUTS cto;
+    GetCommTimeouts(handle,&cto);
+    cto.ReadIntervalTimeout = 1000;
+    cto.ReadTotalTimeoutConstant = 0;
+    cto.ReadTotalTimeoutMultiplier = 0;
+    SetCommTimeouts(handle,&cto);
+
+    DWORD written;
+    BOOL writeOK = WriteFile( handle, (LPVOID)(data.c_str()), (DWORD)data.size(), &written, NULL );
+
+    CloseHandle( handle );
+    // printf("DEBUG: written:%lu\n", written);
+
+    if(!writeOK) {
+        std::string error_str("error on write: ");
+        error_str += getLastErrorCodeAndMessage();
+        RETURN_EXCEPTION_STR(error_str.c_str());
+    }
+}
+
+MY_NODE_MODULE_CALLBACK(ReadPath)
+{
+    MY_NODE_MODULE_HANDLESCOPE;
+    REQUIRE_ARGUMENTS(iArgs, 1);
+
+    REQUIRE_ARGUMENT_STRING(iArgs, 0, path);
+
+    HANDLE handle = CreateFile(*path, GENERIC_READ|GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+    if(handle == INVALID_HANDLE_VALUE) {
+        RETURN_EXCEPTION_STR("Handle could not be opened");
+    }
+
+    COMMTIMEOUTS cto;
+    GetCommTimeouts(handle,&cto);
+    cto.ReadIntervalTimeout = 1000;
+    cto.ReadTotalTimeoutConstant = 0;
+    cto.ReadTotalTimeoutMultiplier = 0;
+    SetCommTimeouts(handle,&cto);
+
+    DWORD nRead;
+    char readBuf[1000] = {0};
+    BOOL readOK = ReadFile(handle, readBuf, 1000, &nRead, NULL);
+
+    CloseHandle( handle );
+    if(nRead > 999) {
+        RETURN_EXCEPTION_STR("Buffer overflow, code fix needed");
+    }
+    // printf("DEBUG: read:%lu\n", nRead);
+
+    if(!readOK) {
+        std::string error_str("error on read: ");
+        error_str += getLastErrorCodeAndMessage();
+        RETURN_EXCEPTION_STR(error_str.c_str());
+    }
+
+    v8::Local<v8::Object> js_buffer = node::Buffer::Copy(isolate, (const char *)readBuf, nRead).ToLocalChecked();
+    MY_NODE_MODULE_RETURN_VALUE(js_buffer);
 }

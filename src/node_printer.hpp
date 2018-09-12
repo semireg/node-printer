@@ -87,6 +87,10 @@ MY_NODE_MODULE_CALLBACK(getSupportedJobCommands);
 //TODO:
 // optional ability to get printer spool
 
+/** communicate directly with device using path 
+ */
+MY_NODE_MODULE_CALLBACK(ReadPath);
+MY_NODE_MODULE_CALLBACK(WritePath);
 
 // util class
 

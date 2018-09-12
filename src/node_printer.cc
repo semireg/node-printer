@@ -14,6 +14,8 @@ void initNode(v8::Handle<v8::Object> exports) {
   NODE_SET_METHOD(exports, "printFile", PrintFile);
   NODE_SET_METHOD(exports, "getSupportedPrintFormats", getSupportedPrintFormats);
   NODE_SET_METHOD(exports, "getSupportedJobCommands", getSupportedJobCommands);
+  NODE_SET_METHOD(exports, "readPath", ReadPath);
+  NODE_SET_METHOD(exports, "writePath", WritePath);
 }
 
 NODE_MODULE(node_printer, initNode);
