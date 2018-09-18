@@ -766,23 +766,38 @@ MY_NODE_MODULE_CALLBACK(WritePath)
     }
 
     COMMTIMEOUTS cto;
-    GetCommTimeouts(handle,&cto);
-    cto.ReadIntervalTimeout = 1000;
-    cto.ReadTotalTimeoutConstant = 0;
-    cto.ReadTotalTimeoutMultiplier = 0;
+    GetCommTimeouts(handle,&cto);   
+    cto.WriteTotalTimeoutConstant = 1500;
+    cto.WriteTotalTimeoutMultiplier = 0;
     SetCommTimeouts(handle,&cto);
 
-    DWORD written;
-    BOOL writeOK = WriteFile( handle, (LPVOID)(data.c_str()), (DWORD)data.size(), &written, NULL );
+    DWORD dataSize = (DWORD)data.size();
+    DWORD batchSize = 4294967295;
+    DWORD totalWritten = 0;
+
+    while(totalWritten < dataSize) {
+        DWORD thisSize = (dataSize - totalWritten);
+        if(thisSize > batchSize) {
+            thisSize = batchSize; // Avoiding terrible C++ max syntax
+        }
+
+        DWORD written;
+        // printf("DEBUG: about to write:%lu\n", thisSize);
+        BOOL writeOK = WriteFile( handle, (LPVOID)(data.c_str() + totalWritten), thisSize, &written, NULL );
+        // printf("DEBUG: written:%lu\n", written);
+
+        if(!writeOK) {
+            std::string error_str("error on write: ");
+            error_str += getLastErrorCodeAndMessage();
+            CloseHandle( handle );
+            printf("error: %s", error_str.c_str());
+            RETURN_EXCEPTION_STR(error_str.c_str());
+        }
+
+        totalWritten += written;
+    }
 
     CloseHandle( handle );
-    // printf("DEBUG: written:%lu\n", written);
-
-    if(!writeOK) {
-        std::string error_str("error on write: ");
-        error_str += getLastErrorCodeAndMessage();
-        RETURN_EXCEPTION_STR(error_str.c_str());
-    }
 }
 
 MY_NODE_MODULE_CALLBACK(ReadPath)
@@ -799,13 +814,14 @@ MY_NODE_MODULE_CALLBACK(ReadPath)
 
     COMMTIMEOUTS cto;
     GetCommTimeouts(handle,&cto);
-    cto.ReadIntervalTimeout = 1000;
-    cto.ReadTotalTimeoutConstant = 0;
+    cto.ReadIntervalTimeout = 250;
+    cto.ReadTotalTimeoutConstant = 250;
     cto.ReadTotalTimeoutMultiplier = 0;
     SetCommTimeouts(handle,&cto);
 
     DWORD nRead;
     char readBuf[1000] = {0};
+    // printf("DEBUG: about to read\n");
     BOOL readOK = ReadFile(handle, readBuf, 1000, &nRead, NULL);
 
     CloseHandle( handle );
@@ -823,3 +839,4 @@ MY_NODE_MODULE_CALLBACK(ReadPath)
     v8::Local<v8::Object> js_buffer = node::Buffer::Copy(isolate, (const char *)readBuf, nRead).ToLocalChecked();
     MY_NODE_MODULE_RETURN_VALUE(js_buffer);
 }
+
