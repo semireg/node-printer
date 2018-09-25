@@ -762,7 +762,10 @@ MY_NODE_MODULE_CALLBACK(WritePath)
 
     HANDLE handle = CreateFile(*path, GENERIC_READ|GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
     if(handle == INVALID_HANDLE_VALUE) {
-        RETURN_EXCEPTION_STR("Handle could not be opened");
+        std::string error_str("error on write open: ");
+        error_str += getLastErrorCodeAndMessage();
+        printf("%s", error_str.c_str());
+        RETURN_EXCEPTION_STR(error_str.c_str());
     }
 
     COMMTIMEOUTS cto;
@@ -790,7 +793,7 @@ MY_NODE_MODULE_CALLBACK(WritePath)
             std::string error_str("error on write: ");
             error_str += getLastErrorCodeAndMessage();
             CloseHandle( handle );
-            printf("error: %s", error_str.c_str());
+            printf("%s", error_str.c_str());
             RETURN_EXCEPTION_STR(error_str.c_str());
         }
 
@@ -809,7 +812,10 @@ MY_NODE_MODULE_CALLBACK(ReadPath)
 
     HANDLE handle = CreateFile(*path, GENERIC_READ|GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
     if(handle == INVALID_HANDLE_VALUE) {
-        RETURN_EXCEPTION_STR("Handle could not be opened");
+        std::string error_str("error on read open: ");
+        error_str += getLastErrorCodeAndMessage();
+        printf("%s", error_str.c_str());
+        RETURN_EXCEPTION_STR(error_str.c_str());
     }
 
     COMMTIMEOUTS cto;
