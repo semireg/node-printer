@@ -810,7 +810,7 @@ MY_NODE_MODULE_CALLBACK(ReadPath)
 
     REQUIRE_ARGUMENT_STRING(iArgs, 0, path);
 
-    HANDLE handle = CreateFile(*path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+    HANDLE handle = CreateFile(*path, GENERIC_READ|GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
     if(handle == INVALID_HANDLE_VALUE) {
         std::string error_str("error on read open: ");
         error_str += getLastErrorCodeAndMessage();
@@ -820,16 +820,15 @@ MY_NODE_MODULE_CALLBACK(ReadPath)
 
     COMMTIMEOUTS cto;
     GetCommTimeouts(handle,&cto);
-    cto.ReadIntervalTimeout = MAXDWORD;
+    cto.ReadIntervalTimeout = 250;
+    cto.ReadTotalTimeoutConstant = 250;
     cto.ReadTotalTimeoutMultiplier = 0;
-    cto.ReadTotalTimeoutConstant = 0;
     SetCommTimeouts(handle,&cto);
 
     DWORD nRead;
     char readBuf[1000] = {0};
-    // printf("Printer_win: about to read\n");
+    // printf("DEBUG: about to read\n");
     BOOL readOK = ReadFile(handle, readBuf, 1000, &nRead, NULL);
-    // printf("Printer_win: done\n");
 
     CloseHandle( handle );
     if(nRead > 999) {
