@@ -810,7 +810,7 @@ MY_NODE_MODULE_CALLBACK(ReadPath)
 
     REQUIRE_ARGUMENT_STRING(iArgs, 0, path);
 
-    HANDLE handle = CreateFile(*path, GENERIC_READ|GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+    HANDLE handle = CreateFile(*path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
     if(handle == INVALID_HANDLE_VALUE) {
         std::string error_str("error on read open: ");
         error_str += getLastErrorCodeAndMessage();
