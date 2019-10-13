@@ -86,7 +86,7 @@ MY_NODE_MODULE_CALLBACK(ReadPath)
 
     REQUIRE_ARGUMENT_STRING(iArgs, 0, path);
 
-    HANDLE handle = CreateFile(*path, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+    HANDLE handle = CreateFile(*path, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, 0);
     if (handle == INVALID_HANDLE_VALUE)
     {
         std::string error_str("error on read open: ");
@@ -95,30 +95,35 @@ MY_NODE_MODULE_CALLBACK(ReadPath)
         RETURN_EXCEPTION_STR(error_str.c_str());
     }
 
-    COMMTIMEOUTS cto;
-    GetCommTimeouts(handle, &cto);
-    cto.ReadIntervalTimeout = 250;
-    cto.ReadTotalTimeoutConstant = 250;
-    cto.ReadTotalTimeoutMultiplier = 0;
-    SetCommTimeouts(handle, &cto);
-
     DWORD nRead;
     char readBuf[1000] = {0};
-    // printf("DEBUG: about to read\n");
-    BOOL readOK = ReadFile(handle, readBuf, 1000, &nRead, NULL);
 
+    OVERLAPPED oRead = {0};
+    oRead.hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+
+    // printf("DEBUG: about to read\n");
+    BOOL readOK = ReadFile(handle, readBuf, 1000, &nRead, &oRead);
+
+    DWORD dwWaitRes = WaitForSingleObject(oRead.hEvent, 50);
+    DWORD reason = dwWaitRes - WAIT_OBJECT_0;
+    BOOL didTimeout = reason == WAIT_TIMEOUT;
+
+    readOK = GetOverlappedResult(handle, &oRead, &nRead, false);
+
+    // printf("DEBUG: closing\n");
+
+    CancelIo(handle);
     CloseHandle(handle);
     if (nRead > 999)
     {
-        RETURN_EXCEPTION_STR("Buffer overflow, code fix needed");
+        RETURN_EXCEPTION_STR("FIXME: too much data");
     }
-    // printf("DEBUG: read:%lu\n", nRead);
 
-    if (!readOK)
+    // printf("DEBUG: read: %lu\n", nRead);
+
+    if (!readOK && didTimeout)
     {
-        std::string error_str("error on read: ");
-        error_str += getLastErrorCodeAndMessage();
-        RETURN_EXCEPTION_STR(error_str.c_str());
+        RETURN_EXCEPTION_STR("Timeout");
     }
 
     v8::Local<v8::Object> js_buffer = node::Buffer::Copy(isolate, (const char *)readBuf, nRead).ToLocalChecked();
