@@ -26,7 +26,7 @@ MY_NODE_MODULE_CALLBACK(WritePath)
     REQUIRE_ARGUMENT_STRING(iArgs, 0, path);
 
     std::string data;
-    v8::Handle<v8::Value> arg1(iArgs[1]);
+    v8::Local<v8::Value> arg1(iArgs[1]);
     if (!getStringOrBufferFromV8Value(arg1, data))
     {
         RETURN_EXCEPTION_STR("Argument 1 must be a string or Buffer");
@@ -128,4 +128,5 @@ MY_NODE_MODULE_CALLBACK(ReadPath)
 
     v8::Local<v8::Object> js_buffer = node::Buffer::Copy(isolate, (const char *)readBuf, nRead).ToLocalChecked();
     MY_NODE_MODULE_RETURN_VALUE(js_buffer);
+
 }

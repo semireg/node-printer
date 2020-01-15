@@ -5,8 +5,8 @@
 void initNode(v8::Local<v8::Object> exports)
 {
     // only for node
-    NODE_SET_METHOD(exports, "readPath", ReadPath);
-    NODE_SET_METHOD(exports, "writePath", WritePath);
+    MY_MODULE_SET_METHOD(exports, "readPath", ReadPath);
+    MY_MODULE_SET_METHOD(exports, "writePath", WritePath);
 }
 
 NODE_MODULE(node_printer, initNode);
@@ -20,7 +20,7 @@ bool getStringOrBufferFromV8Value(v8::Local<v8::Value> iV8Value, std::string &oD
 
     if (iV8Value->IsString())
     {
-        v8::String::Utf8Value data_str_v8(isolate, iV8Value);
+        Nan::Utf8String data_str_v8(V8_LOCAL_STRING_FROM_VALUE(iV8Value));
         oData.assign(*data_str_v8, data_str_v8.length());
         return true;
     }
