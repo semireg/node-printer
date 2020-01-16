@@ -22,13 +22,11 @@
 #  define V8_STRING_NEW_2BYTES(value)   v8::String::NewFromTwoByte(MY_NODE_MODULE_ISOLATE, value)
 #endif
 
-#define RETURN_EXCEPTION(msg)  isolate->ThrowException(Nan::Error(msg));    \                          \
-    // isolate->ThrowException(v8::Exception::TypeError(msg)); \
+#define RETURN_EXCEPTION(msg)  isolate->ThrowException(Nan::Error(msg));               \
     return
 
 #define RETURN_EXCEPTION_STR(msg) RETURN_EXCEPTION(V8_STRING_NEW_UTF8(msg))
-#define MY_NODE_MODULE_RETURN_VALUE(value) \
-    iArgs.GetReturnValue().Set(value);     \
+#define MY_NODE_MODULE_RETURN_VALUE(value) iArgs.GetReturnValue().Set(value);     \
     return
 #define MY_NODE_MODULE_RETURN_UNDEFINED() return
 #else
@@ -130,7 +128,6 @@
 #define REQUIRE_ARGUMENT_STRINGV8(args, i, var)                                       \
     ARG_CHECK_STRING(args, i);                                                        \
     v8::Local<v8::String> var = (args[i]->ToString(args.GetIsolate()->GetCurrent())); \
-    \    
 
 #define OPTIONAL_ARGUMENT_FUNCTION(i, var)                                            \
         v8::Local<v8::Function>                                                       \
