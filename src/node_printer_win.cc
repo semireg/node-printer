@@ -4,9 +4,7 @@
 #include <windows.h>
 #include <Winspool.h>
 #include <Wingdi.h>
-#include <Winsplp.h>
-
-#pragma comment(lib, "Winspool.lib")
+#pragma  comment(lib, "Winspool.lib")
 #else
 #error "Unsupported compiler for windows. Feel free to add it."
 #endif
@@ -16,7 +14,37 @@
 #include <utility>
 #include <sstream>
 #include <node_version.h>
+// possibly remove
 #include <node_buffer.h>
+
+/**
+    * Returns last error code and message string
+    */
+std::string getLastErrorCodeAndMessage() {
+    std::ostringstream s;
+    DWORD erroCode = GetLastError();
+    s << "code: " << erroCode;
+    DWORD retSize;
+    LPTSTR pTemp = NULL;
+    retSize = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER|
+                            FORMAT_MESSAGE_FROM_SYSTEM|
+                            FORMAT_MESSAGE_ARGUMENT_ARRAY,
+                            NULL,
+                            erroCode,
+                            LANG_NEUTRAL,
+                            (LPTSTR)&pTemp,
+                            0,
+                            NULL );
+    if (retSize && pTemp != NULL) {
+    //pTemp[strlen(pTemp)-2]='\0'; //remove cr and newline character
+    //TODO: check if it is needed to convert c string to std::string
+    std::string stringMessage(pTemp);
+    s << ", message: " << stringMessage;
+    LocalFree((HLOCAL)pTemp);
+}
+
+    return s.str();
+}
 
 MY_NODE_MODULE_CALLBACK(WritePath)
 {
@@ -128,5 +156,4 @@ MY_NODE_MODULE_CALLBACK(ReadPath)
 
     v8::Local<v8::Object> js_buffer = node::Buffer::Copy(isolate, (const char *)readBuf, nRead).ToLocalChecked();
     MY_NODE_MODULE_RETURN_VALUE(js_buffer);
-
 }
