@@ -2,17 +2,17 @@
 
 #include <node_buffer.h>
 
-void initNode(v8::Local<v8::Object> exports)
-{
-    // only for node
-    NODE_SET_METHOD(exports, "readPath", ReadPath);
-    NODE_SET_METHOD(exports, "writePath", WritePath);
+void initNode(v8::Local<v8::Object> exports) {
+// only for node
+    MY_MODULE_SET_METHOD(exports, "readPath", ReadPath);
+    MY_MODULE_SET_METHOD(exports, "writePath", WritePath);
 }
 
 NODE_MODULE(node_printer, initNode);
 
 // Helpers
 
+// possibly change to other version
 bool getStringOrBufferFromV8Value(v8::Local<v8::Value> iV8Value, std::string &oData)
 {
     v8::Isolate *isolate = v8::Isolate::GetCurrent();
@@ -32,6 +32,7 @@ bool getStringOrBufferFromV8Value(v8::Local<v8::Value> iV8Value, std::string &oD
     return false;
 }
 
+// possibly remove
 bool getStringOrBufferFromV8MaybeLocalString(v8::MaybeLocal<v8::String> iV8MaybeLocal, std::string &oData)
 {
     v8::Local<v8::String> localString = iV8MaybeLocal.ToLocalChecked();

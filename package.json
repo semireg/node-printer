@@ -1,42 +1,41 @@
 {
-  "name": "printer",
+  "name": "@thiagoelg/node-printer",
   "description": "Node.js printer bindings",
-  "version": "0.3.0",
-  "homepage": "http://github.com/tojocky/node-printer",
+  "version": "0.5.2",
+  "homepage": "https://github.com/thiagoelg/node-printer",
   "author": {
     "name": "Ion Lupascu",
     "url": "http://program-support.co.uk/",
     "email": "ionlupascu@gmail.com"
   },
   "contributors": [
+    "Thiago Lugli <thiagoelg@gmail.com>",
+    "Eko Eryanto <ekoeryanto@gmail.com>",
     "Name Lastname <email@server.com>"
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/tojocky/node-printer.git"
+    "url": "git://github.com/thiagoelg/node-printer.git"
   },
   "devDependencies": {
-    "grunt": "^0.4.5",
-    "grunt-contrib-copy": "^0.8.0",
-    "grunt-contrib-jshint": "^0.11.0",
-    "grunt-node-gyp": "git://github.com/tojocky/grunt-node-gyp.git",
-    "grunt-nw-gyp": "git://github.com/tojocky/grunt-nw-gyp.git",
-    "nodeunit": "*"
+    "nodeunit": "*",
+    "prebuild": "^9.1.1",
+    "prebuild-ci": "^3.1.0"
   },
   "engines": {
-    "node": ">= 0.8.0"
+    "node": ">= 4.0.0"
   },
   "scripts": {
-    "preinstall": "npm install node-pre-gyp",
-    "install": "node-pre-gyp install --fallback-to-build",
-    "build": "node-gyp build",
+    "install": "prebuild-install || node-gyp rebuild",
+    "prebuild": "prebuild --all --force --strip --verbose",
+    "rebuild": "node-gyp rebuild",
     "test": "nodeunit test"
   },
   "binary": {
     "module_name": "node_printer",
     "module_path": "./lib/",
-    "host": "https://github.com/tojocky/node-printer/releases/download/",
-    "remote_path": "{version}"
+    "host": "https://github.com/thiagoelg/node-printer/releases/download/",
+    "remote_path": "v{version}"
   },
   "licenses": [
     {
@@ -45,8 +44,7 @@
   ],
   "main": "./lib/printer",
   "dependencies": {
-    "natives": "^1.1.6",
-    "node-gyp": "^3.8.0",
-    "node-pre-gyp": "^0.12.0"
+    "nan": "^2.14.0",
+    "prebuild-install": "^5.3.2"
   }
 }

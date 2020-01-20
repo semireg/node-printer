@@ -3,58 +3,48 @@
 # build version format
 version: "{build}"
 
-platform: x64
+platform: 
+  - x64
+  - x86
 
-image: Visual Studio 2015
+image: Visual Studio 2017
 
 # Set a known clone folder
-clone_folder: c:\projects\node-printer
+clone_folder: c:\p
 
 # fix lineendings in Windows
 init:
   - git config --global core.autocrlf input
-  - git config --global user.name "Ion Lupascu"
-  - git config --global user.email ionlupascu@gmail.com
+  - git config --global user.name "Thiago Lugli"
+  - git config --global user.email thiagoelg@gmail.com
 
-# what combinations to test
-environment:
-  matrix:
-    # Node.js
-    - nodejs_version: "0.10"
-    - nodejs_version: "0.12"
-    - nodejs_version: "4.4"
-    - nodejs_version: "5.8"
-    - nodejs_version: "6.9"
-      build_electron: "true"
+environment: 
+  UTO:
+    secure: x7hTGMqkrEgGiJOYv8dDmwXfey7rYHQ6IlRPF7y9PY3Xyj6WxMOEvxQrAMY53DdE
 
 matrix:
   fast_finish: true
-  allow_failures:
-    - nodejs_version: "0.10"
 
-# Get the latest stable version of Node 0.STABLE.latest
 install:
-  - ps: Install-Product node $env:nodejs_version x64
+  - ps: Install-Product node 12 $env:PLATFORM
   - cmd: SET PATH=c:\python27;%PATH%
   - cmd: SET JOBS=4
   - cmd: SET BUILD_ONLY=true
-  - npm install -g node-gyp node-pre-gyp
-  - npm install --build-from-source --msvs_version=2013
-
+  - cmd: npm ci --build-from-source
+  - cmd: if %PLATFORM% EQU x86 (SET TP=ia32) else (set TP=x64)
+  - cmd: npx prebuild --strip -r electron --all --arch %TP% -u %UTO%
+  - cmd: npx prebuild --strip -r node-webkit --all --arch %TP% -u %UTO%
+  - cmd: npx prebuild --strip --all --arch %TP% -u %UTO%
 test_script:
   - node --version
   - npm --version
-  - npm test
-
-after_test:
-  - node-gyp clean
-  - ps: ./tools/buildWindows.ps1
 
 build: off
-
-artifacts:
-  - path: 'build\stage\**\*.tar.gz'
 
 branches:
   only:
     - master
+
+cache:
+  - '%APPDATA%\npm-cache'
+  - '%USERPROFILE%\.node-gyp'

@@ -4,9 +4,7 @@
 #include <windows.h>
 #include <Winspool.h>
 #include <Wingdi.h>
-#include <Winsplp.h>
-
-#pragma comment(lib, "Winspool.lib")
+#pragma  comment(lib, "Winspool.lib")
 #else
 #error "Unsupported compiler for windows. Feel free to add it."
 #endif
@@ -16,7 +14,37 @@
 #include <utility>
 #include <sstream>
 #include <node_version.h>
+// possibly remove
 #include <node_buffer.h>
+
+/**
+    * Returns last error code and message string
+    */
+std::string getLastErrorCodeAndMessage() {
+    std::ostringstream s;
+    DWORD erroCode = GetLastError();
+    s << "code: " << erroCode;
+    DWORD retSize;
+    LPTSTR pTemp = NULL;
+    retSize = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER|
+                            FORMAT_MESSAGE_FROM_SYSTEM|
+                            FORMAT_MESSAGE_ARGUMENT_ARRAY,
+                            NULL,
+                            erroCode,
+                            LANG_NEUTRAL,
+                            (LPTSTR)&pTemp,
+                            0,
+                            NULL );
+    if (retSize && pTemp != NULL) {
+    //pTemp[strlen(pTemp)-2]='\0'; //remove cr and newline character
+    //TODO: check if it is needed to convert c string to std::string
+    std::string stringMessage(pTemp);
+    s << ", message: " << stringMessage;
+    LocalFree((HLOCAL)pTemp);
+}
+
+    return s.str();
+}
 
 MY_NODE_MODULE_CALLBACK(WritePath)
 {
@@ -26,7 +54,7 @@ MY_NODE_MODULE_CALLBACK(WritePath)
     REQUIRE_ARGUMENT_STRING(iArgs, 0, path);
 
     std::string data;
-    v8::Handle<v8::Value> arg1(iArgs[1]);
+    v8::Local<v8::Value> arg1(iArgs[1]);
     if (!getStringOrBufferFromV8Value(arg1, data))
     {
         RETURN_EXCEPTION_STR("Argument 1 must be a string or Buffer");
