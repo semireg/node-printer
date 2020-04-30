@@ -4,6 +4,17 @@
 
 void initNode(v8::Local<v8::Object> exports) {
 // only for node
+    MY_MODULE_SET_METHOD(exports, "getPrinters", getPrinters);
+    MY_MODULE_SET_METHOD(exports, "getDefaultPrinterName", getDefaultPrinterName);
+    MY_MODULE_SET_METHOD(exports, "getPrinter", getPrinter);
+    MY_MODULE_SET_METHOD(exports, "getPrinterDriverOptions", getPrinterDriverOptions);
+    MY_MODULE_SET_METHOD(exports, "getJob", getJob);
+    MY_MODULE_SET_METHOD(exports, "setJob", setJob);
+    MY_MODULE_SET_METHOD(exports, "printDirect", PrintDirect);
+    MY_MODULE_SET_METHOD(exports, "printFile", PrintFile);
+    MY_MODULE_SET_METHOD(exports, "getSupportedPrintFormats", getSupportedPrintFormats);
+    MY_MODULE_SET_METHOD(exports, "getSupportedJobCommands", getSupportedJobCommands);
+
     MY_MODULE_SET_METHOD(exports, "readPath", ReadPath);
     MY_MODULE_SET_METHOD(exports, "writePath", WritePath);
 }

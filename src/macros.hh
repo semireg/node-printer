@@ -6,6 +6,17 @@
 
 // NODE_MODULE_VERSION was incremented for v0.11
 
+#if NODE_VERSION_AT_LEAST(13, 0, 0)
+#  define MY_NODE_GET_OBJECT(object, id) object->Get(v8::Isolate::GetCurrent()->GetCurrentContext(), id).ToLocalChecked()
+#  define MY_NODE_SET_OBJECT(object, id, prop) object->Set(v8::Isolate::GetCurrent()->GetCurrentContext(), id, prop)
+#  define MY_NODE_SET_OBJECT_PROP(object, id, prop) MY_NODE_SET_OBJECT(object, V8_STRING_NEW_UTF8(id), prop)
+#else
+#  define MY_NODE_GET_OBJECT(object, id) object->Get(id)
+#  define MY_NODE_SET_OBJECT(object, id, prop) object->Set(id, prop)
+#  define MY_NODE_SET_OBJECT_PROP(object, id, prop) MY_NODE_SET_OBJECT(object, V8_STRING_NEW_UTF8(id), prop)
+#endif
+// NODE_MODULE_VERSION was incremented for v0.11
+
 #if NODE_VERSION_AT_LEAST(0, 11, 10)
 #  define MY_NODE_MODULE_ISOLATE_DECL v8::Isolate* isolate = v8::Isolate::GetCurrent();
 #  define MY_NODE_MODULE_ISOLATE      isolate
